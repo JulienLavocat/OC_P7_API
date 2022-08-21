@@ -1,0 +1,12 @@
+version: '3'
+
+name: oc-p7-jl
+
+services:
+  mongo:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=groupomania
+      - POSTGRES_PASSWORD=groupomania
+    ports:
+      - "5432:5432"
