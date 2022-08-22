@@ -19,4 +19,6 @@ model User {
   firstName   String
   lastName    String
   displayName String
+  image       String
+  role        String @default("user")
 }
