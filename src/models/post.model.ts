@@ -13,7 +13,9 @@ export class Post {
 	likes: number;
 
 	@ApiProperty()
-	userId: string;
+	userId: number;
+	@ApiProperty()
+	userDisplayId: string;
 	@ApiProperty()
 	userName: string;
 	@ApiProperty()

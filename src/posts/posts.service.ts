@@ -34,7 +34,7 @@ export class PostsService {
 	async getFeed(userId: number): Promise<PostModel[]> {
 		const rawPosts = await this.prisma.post.findMany({
 			orderBy: {
-				createdAt: "asc",
+				createdAt: "desc",
 			},
 			include: {
 				owner: {
@@ -50,7 +50,7 @@ export class PostsService {
 
 		const likedPosts = await this.prisma.likes.findMany({
 			select: {
-				id: true,
+				postId: true,
 			},
 			where: {
 				postId: { in: rawPosts.map((e) => e.id) },
@@ -59,7 +59,7 @@ export class PostsService {
 		});
 
 		// Allows for O(1) lookup instead of O(n)
-		const likes = new Set([...likedPosts].map((e) => e.id));
+		const likes = new Set(likedPosts.map((e) => e.postId));
 
 		return rawPosts.map<PostModel>((e) => ({
 			content: e.content,
@@ -68,9 +68,52 @@ export class PostsService {
 			id: e.id,
 			image: e.image,
 			likes: e.likes,
-			userId: e.owner.firstName + e.owner.lastName,
+			userId: e.userId,
+			userDisplayId: e.owner.firstName + e.owner.lastName,
 			userImage: e.owner.image,
 			userName: e.owner.displayName,
 		}));
+	}
+
+	async like(postId: number, userId: number): Promise<void> {
+		await this.prisma.$transaction(async (prisma) => {
+			await prisma.post.update({
+				data: {
+					likes: { increment: 1 },
+				},
+				where: {
+					id: postId,
+				},
+			});
+
+			await prisma.likes.create({
+				data: {
+					userId,
+					postId,
+				},
+			});
+		});
+	}
+
+	async dislike(postId: number, userId: number): Promise<void> {
+		await this.prisma.$transaction(async (prisma) => {
+			await prisma.post.update({
+				data: {
+					likes: { decrement: 1 },
+				},
+				where: {
+					id: postId,
+				},
+			});
+
+			await prisma.likes.delete({
+				where: {
+					postId_userId: {
+						userId,
+						postId,
+					},
+				},
+			});
+		});
 	}
 }

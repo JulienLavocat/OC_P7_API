@@ -2,6 +2,8 @@ import {
 	Body,
 	Controller,
 	Get,
+	Param,
+	ParseIntPipe,
 	Post,
 	UploadedFile,
 	UseGuards,
@@ -71,5 +73,31 @@ export class PostsController {
 	@UseGuards(UserGuard)
 	getFeed(@GetUser() user: UserToken): Promise<PostModel[]> {
 		return this.posts.getFeed(user.id);
+	}
+
+	@Get("/:postId/like")
+	@ApiOperation({
+		operationId: "like",
+	})
+	@ApiBearerAuth()
+	@UseGuards(UserGuard)
+	like(
+		@Param("postId", ParseIntPipe) postId: number,
+		@GetUser() user: UserToken,
+	): Promise<void> {
+		return this.posts.like(postId, user.id);
+	}
+
+	@Get("/:postId/dislike")
+	@ApiOperation({
+		operationId: "dislike",
+	})
+	@ApiBearerAuth()
+	@UseGuards(UserGuard)
+	dislike(
+		@Param("postId", ParseIntPipe) postId: number,
+		@GetUser() user: UserToken,
+	): Promise<void> {
+		return this.posts.dislike(postId, user.id);
 	}
 }
