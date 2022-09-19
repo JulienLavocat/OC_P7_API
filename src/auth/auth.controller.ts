@@ -1,9 +1,9 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { AuthService } from "./auth.service";
 import { AuthResponse } from "./dto/auth-response.dto";
 import { LoginDto } from "./dto/login.dto";
+import { RefreshTokenResponse } from "./dto/refresh-token-response.dto";
 import { RegisterDto } from "./dto/regsiter.dto";
 
 @ApiTags("Authentication")
@@ -17,7 +17,7 @@ export class AuthController {
 		type: AuthResponse,
 	})
 	@ApiOperation({ operationId: "register" })
-	register(@Body() dto: RegisterDto): Promise<{ user: User; token: string }> {
+	register(@Body() dto: RegisterDto): Promise<AuthResponse> {
 		return this.auth.register(dto);
 	}
 
@@ -27,7 +27,19 @@ export class AuthController {
 		status: 201,
 		type: AuthResponse,
 	})
-	createOne(@Body() dto: LoginDto): Promise<{ user: User; token: string }> {
+	createOne(@Body() dto: LoginDto): Promise<AuthResponse> {
 		return this.auth.login(dto);
+	}
+
+	@Post("/refresh")
+	@ApiOperation({ operationId: "refreshToken" })
+	@ApiResponse({
+		status: 201,
+		type: RefreshTokenResponse,
+	})
+	refreshToken(
+		@Body() dto: RefreshTokenResponse,
+	): Promise<RefreshTokenResponse> {
+		return this.auth.refreshToken(dto);
 	}
 }

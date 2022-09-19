@@ -14,11 +14,34 @@ model Password {
 }
 
 model User {
-  id          Int    @id @default(autoincrement())
-  email       String @unique
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
   firstName   String
   lastName    String
   displayName String
   image       String
-  role        String @default("user")
+  role        String  @default("user")
+  Post        Post[]
+  Likes       Likes[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  content   String?
+  image     String?
+  likes     Int      @default(0)
+
+  owner User    @relation(fields: [userId], references: [id])
+  Likes Likes[]
+}
+
+model Likes {
+  id     Int @id @default(autoincrement())
+  postId Int
+  userId Int
+
+  post    Post @relation(fields: [postId], references: [id])
+  likedBy User @relation(fields: [userId], references: [id])
 }

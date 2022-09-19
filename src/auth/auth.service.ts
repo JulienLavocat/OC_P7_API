@@ -3,12 +3,14 @@ import {
 	ForbiddenException,
 	Injectable,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { PasswordsService } from "../utils/passwords.service";
 import { PrismaService } from "../utils/prisma.service";
 import { TokensService } from "../utils/tokens.service";
+import { AuthResponse } from "./dto/auth-response.dto";
 import { LoginDto } from "./dto/login.dto";
+import { RefreshTokenResponse } from "./dto/refresh-token-response.dto";
+import { RefreshToken } from "./dto/refresh-token.dto";
 import { RegisterDto } from "./dto/regsiter.dto";
 
 const invalidEmailOrPassword = new ForbiddenException(
@@ -23,7 +25,7 @@ export class AuthService {
 		private tokens: TokensService,
 	) {}
 
-	async register(dto: RegisterDto): Promise<{ user: User; token: string }> {
+	async register(dto: RegisterDto): Promise<AuthResponse> {
 		const password = await this.passwords.hash(dto.password);
 		delete dto.password;
 
@@ -52,7 +54,7 @@ export class AuthService {
 		}
 	}
 
-	async login(dto: LoginDto): Promise<{ user: User; token: string }> {
+	async login(dto: LoginDto): Promise<AuthResponse> {
 		const user = await this.prisma.user.findUnique({
 			where: { email: dto.email },
 		});
@@ -69,5 +71,9 @@ export class AuthService {
 			throw invalidEmailOrPassword;
 
 		return { user, token: this.tokens.sign(user) };
+	}
+
+	async refreshToken(dto: RefreshToken): Promise<RefreshTokenResponse> {
+		return { token: this.tokens.refresh(dto.token) };
 	}
 }
