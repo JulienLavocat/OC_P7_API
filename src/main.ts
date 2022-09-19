@@ -3,6 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cors from "cors";
+import { Response } from "express";
 import helmet from "helmet";
 import { join } from "path";
 import { AppModule } from "./app.module";
@@ -30,6 +31,9 @@ async function bootstrap(): Promise<void> {
 
 	app.useStaticAssets(join(__dirname, "..", "images"), {
 		prefix: "/images/",
+		setHeaders: (res: Response) => {
+			res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+		},
 	});
 
 	await app.listen(3000);
