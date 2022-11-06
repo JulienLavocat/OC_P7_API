@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException,
+} from "@nestjs/common";
 import { Post } from "@prisma/client";
 import { Post as PostModel } from "../models/post.model";
 import { UserToken } from "../utils/guards/user.guard";
@@ -61,18 +65,15 @@ export class PostsService {
 		// Allows for O(1) lookup instead of O(n)
 		const likes = new Set(likedPosts.map((e) => e.postId));
 
-		return rawPosts.map<PostModel>((e) => ({
-			content: e.content,
-			createdAt: e.createdAt,
-			hasLiked: likes.has(e.id),
-			id: e.id,
-			image: e.image,
-			likes: e.likes,
-			userId: e.userId,
-			userDisplayId: e.owner.firstName + e.owner.lastName,
-			userImage: e.owner.image,
-			userName: e.owner.displayName,
-		}));
+		return rawPosts.map((e) =>
+			PostModel.fromEntity(
+				e,
+				likes.has(e.id),
+				e.owner.firstName + e.owner.lastName,
+				e.owner.displayName,
+				e.owner.image,
+			),
+		);
 	}
 
 	async like(postId: number, userId: number): Promise<void> {
@@ -115,5 +116,30 @@ export class PostsService {
 				},
 			});
 		});
+	}
+
+	async delete(postId: number, userId: number): Promise<PostModel> {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+		});
+		const post = await this.prisma.post.findUnique({
+			where: {
+				id: postId,
+			},
+		});
+
+		if (user.role !== "admin" || user.id !== post.userId)
+			throw new UnauthorizedException(
+				"You don't have the permission to delete this post",
+			);
+
+		const entity = await this.prisma.post.delete({
+			where: {
+				id: post.id,
+			},
+		});
+		return PostModel.fromEntity(entity, false, "", "", "");
 	}
 }

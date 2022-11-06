@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Post as PostEntity } from "@prisma/client";
 
 export class Post {
 	@ApiProperty()
@@ -22,4 +23,20 @@ export class Post {
 	userImage: string;
 	@ApiProperty()
 	hasLiked: boolean;
+
+	static fromEntity(
+		entity: PostEntity,
+		hasLiked: boolean,
+		userDisplayId: string,
+		userName: string,
+		userImage: string,
+	): Post {
+		return {
+			...entity,
+			userImage,
+			userName,
+			userDisplayId,
+			hasLiked,
+		};
+	}
 }

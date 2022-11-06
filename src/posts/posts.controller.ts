@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	Param,
 	ParseIntPipe,
@@ -78,6 +79,8 @@ export class PostsController {
 	@Get("/:postId/like")
 	@ApiOperation({
 		operationId: "like",
+		description:
+			"This endpoint has no response, it should be treated has an 'event' rather than a request",
 	})
 	@ApiBearerAuth()
 	@UseGuards(UserGuard)
@@ -91,6 +94,8 @@ export class PostsController {
 	@Get("/:postId/dislike")
 	@ApiOperation({
 		operationId: "dislike",
+		description:
+			"This endpoint has no response, it should be treated has an 'event' rather than a request",
 	})
 	@ApiBearerAuth()
 	@UseGuards(UserGuard)
@@ -99,5 +104,17 @@ export class PostsController {
 		@GetUser() user: UserToken,
 	): Promise<void> {
 		return this.posts.dislike(postId, user.id);
+	}
+
+	@Delete("/:postId")
+	@ApiOperation({
+		operationId: "delete",
+	})
+	@UseGuards(UserGuard)
+	delete(
+		@Param("postId", ParseIntPipe) postId: number,
+		@GetUser() user: UserToken,
+	): Promise<PostModel> {
+		return this.posts.delete(postId, user.id);
 	}
 }

@@ -42,7 +42,7 @@ model Likes {
   postId Int
   userId Int
 
-  post    Post @relation(fields: [postId], references: [id])
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   likedBy User @relation(fields: [userId], references: [id])
 
   @@unique([postId, userId])
