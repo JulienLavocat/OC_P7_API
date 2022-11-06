@@ -31,10 +31,13 @@ export class AuthService {
 
 		try {
 			const user = await this.prisma.$transaction(async (prisma) => {
+				const usersCount = await this.prisma.user.count();
+
 				const user = await prisma.user.create({
 					data: {
 						...dto,
 						image: `http://dicebear.julienlavocat.me/api/initials/${dto.firstName}%20${dto.lastName}.svg`,
+						role: usersCount === 0 ? "admin" : "user",
 					},
 				});
 				await this.prisma.password.create({
