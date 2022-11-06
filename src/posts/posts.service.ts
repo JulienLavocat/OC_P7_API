@@ -7,6 +7,7 @@ import { Post } from "@prisma/client";
 import { Post as PostModel } from "../models/post.model";
 import { UserToken } from "../utils/guards/user.guard";
 import { PrismaService } from "../utils/prisma.service";
+import { UpdatePostDto } from "./dto/update-post.dto";
 
 @Injectable()
 export class PostsService {
@@ -119,27 +120,51 @@ export class PostsService {
 	}
 
 	async delete(postId: number, userId: number): Promise<PostModel> {
-		const user = await this.prisma.user.findUnique({
-			where: {
-				id: userId,
-			},
-		});
-		const post = await this.prisma.post.findUnique({
-			where: {
-				id: postId,
-			},
-		});
-
-		if (user.role !== "admin" || user.id !== post.userId)
-			throw new UnauthorizedException(
-				"You don't have the permission to delete this post",
-			);
-
+		const post = await this.getPostAndCheckEditPermission(postId, userId);
 		const entity = await this.prisma.post.delete({
 			where: {
 				id: post.id,
 			},
 		});
-		return PostModel.fromEntity(entity, false, "", "", "");
+		return PostModel.fromEntity(entity);
+	}
+
+	async update(
+		postId: number,
+		userId: number,
+		dto: UpdatePostDto,
+	): Promise<PostModel> {
+		const post = await this.getPostAndCheckEditPermission(postId, userId);
+
+		const entity = await this.prisma.post.update({
+			data: {
+				content: dto.content,
+			},
+			where: {
+				id: post.id,
+			},
+		});
+
+		return PostModel.fromEntity(entity);
+	}
+
+	async getPostAndCheckEditPermission(postId: number, userId: number) {
+		const user = await this.prisma.user.findUniqueOrThrow({
+			where: {
+				id: userId,
+			},
+		});
+		const post = await this.prisma.post.findUniqueOrThrow({
+			where: {
+				id: postId,
+			},
+		});
+
+		if (user.role !== "admin" && user.id !== post.userId)
+			throw new UnauthorizedException(
+				"You don't have the permission to delete this post",
+			);
+
+		return post;
 	}
 }

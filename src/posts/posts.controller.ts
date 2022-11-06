@@ -5,7 +5,9 @@ import {
 	Get,
 	Param,
 	ParseIntPipe,
+	Patch,
 	Post,
+	Put,
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
@@ -24,6 +26,7 @@ import { Post as PostModel } from "../models/post.model";
 import { GetUser } from "../utils/decorators/user.decorator";
 import { UserGuard, UserToken } from "../utils/guards/user.guard";
 import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
 import { PostsService } from "./posts.service";
 
 @Controller("posts")
@@ -76,7 +79,7 @@ export class PostsController {
 		return this.posts.getFeed(user.id);
 	}
 
-	@Get("/:postId/like")
+	@Patch("/:postId/like")
 	@ApiOperation({
 		operationId: "like",
 		description:
@@ -91,7 +94,7 @@ export class PostsController {
 		return this.posts.like(postId, user.id);
 	}
 
-	@Get("/:postId/dislike")
+	@Patch("/:postId/dislike")
 	@ApiOperation({
 		operationId: "dislike",
 		description:
@@ -106,10 +109,25 @@ export class PostsController {
 		return this.posts.dislike(postId, user.id);
 	}
 
+	@Put("/:postId")
+	@ApiOperation({
+		operationId: "update",
+	})
+	@ApiBearerAuth()
+	@UseGuards(UserGuard)
+	update(
+		@Param("postId", ParseIntPipe) postId: number,
+		@GetUser() user: UserToken,
+		@Body() dto: UpdatePostDto,
+	): Promise<PostModel> {
+		return this.posts.update(postId, user.id, dto);
+	}
+
 	@Delete("/:postId")
 	@ApiOperation({
 		operationId: "delete",
 	})
+	@ApiBearerAuth()
 	@UseGuards(UserGuard)
 	delete(
 		@Param("postId", ParseIntPipe) postId: number,

@@ -26,10 +26,10 @@ export class Post {
 
 	static fromEntity(
 		entity: PostEntity,
-		hasLiked: boolean,
-		userDisplayId: string,
-		userName: string,
-		userImage: string,
+		hasLiked: boolean = false,
+		userDisplayId: string = "",
+		userName: string = "",
+		userImage: string = "",
 	): Post {
 		return {
 			...entity,
