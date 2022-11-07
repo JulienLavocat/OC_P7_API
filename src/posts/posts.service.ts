@@ -4,6 +4,7 @@ import {
 	UnauthorizedException,
 } from "@nestjs/common";
 import { Post } from "@prisma/client";
+import { unlink } from "fs/promises";
 import { Post as PostModel } from "../models/post.model";
 import { UserToken } from "../utils/guards/user.guard";
 import { PrismaService } from "../utils/prisma.service";
@@ -126,6 +127,9 @@ export class PostsService {
 				id: post.id,
 			},
 		});
+
+		if (entity.image) unlink(entity.image);
+
 		return PostModel.fromEntity(entity);
 	}
 
